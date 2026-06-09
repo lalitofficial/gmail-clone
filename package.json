@@ -1,0 +1,19 @@
+{
+  "name": "gmail-clone",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Gmail clone — pixel-faithful UI for web (React/Vite) and mobile (Expo/React Native). UI-first, mock data.",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "web": "npm run dev -w apps/web",
+    "mobile": "npm run start -w apps/mobile",
+    "build:web": "npm run build -w apps/web",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
