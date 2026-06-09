@@ -1,0 +1,40 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# builds
+dist/
+build/
+web-build/
+*.tsbuildinfo
+
+# expo
+.expo/
+.expo-shared/
+apps/mobile/.expo/
+
+# native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# local TLS certs (mkcert) — never commit private keys
+apps/web/certs/
+
+# server data store
+apps/server/data/
+
+# misc
+.DS_Store
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.env
+.env.local
+.vscode/
+coverage/

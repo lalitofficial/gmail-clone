@@ -8,6 +8,7 @@
     "apps/*"
   ],
   "scripts": {
+    "server": "npm run start -w apps/server",
     "web": "npm run dev -w apps/web",
     "mobile": "npm run start -w apps/mobile",
     "build:web": "npm run build -w apps/web",
@@ -15,5 +16,8 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.60.0"
   }
 }
