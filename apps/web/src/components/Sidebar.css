@@ -1,0 +1,125 @@
+.gm-sidebar {
+  width: var(--gm-sidebar-width);
+  flex-shrink: 0;
+  padding: 8px 8px 8px 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.gm-sidebar--rail {
+  width: var(--gm-sidebar-collapsed-width);
+}
+
+/* Compose */
+.gm-compose-wrap {
+  padding: 8px 12px 16px 8px;
+}
+
+.gm-compose {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+  padding: 0 24px 0 16px;
+  border: none;
+  border-radius: var(--gm-radius-md);
+  background: var(--gm-color-primary-container);
+  color: var(--gm-color-on-primary-container);
+  box-shadow: var(--gm-elevation-1);
+  transition: box-shadow 120ms ease, background 120ms ease;
+}
+.gm-compose:hover {
+  box-shadow: var(--gm-elevation-2);
+  background: #b3dbfb;
+}
+.gm-compose-label {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+}
+.gm-sidebar--rail .gm-compose {
+  padding: 0;
+  width: 56px;
+  justify-content: center;
+}
+
+/* Nav items */
+.gm-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.gm-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  height: 32px;
+  padding: 0 12px 0 26px;
+  margin: 0;
+  border: none;
+  background: transparent;
+  border-radius: 0 16px 16px 0;
+  color: var(--gm-color-on-surface);
+  font-size: 14px;
+  letter-spacing: 0.2px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.gm-nav-item:hover {
+  background: var(--gm-color-hover);
+}
+.gm-nav-item--active {
+  background: var(--gm-color-secondary-container);
+  color: var(--gm-color-on-secondary-container);
+  font-weight: 700;
+}
+.gm-nav-item--active .gm-nav-icon {
+  color: var(--gm-color-on-secondary-container);
+}
+
+.gm-nav-icon {
+  color: var(--gm-color-on-surface-variant);
+  flex-shrink: 0;
+}
+
+.gm-nav-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gm-nav-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: inherit;
+}
+
+.gm-nav-more {
+  width: 100%;
+}
+
+.gm-sidebar--rail .gm-nav-item {
+  border-radius: 16px;
+  margin: 2px 4px;
+  padding: 0;
+  width: 64px;
+  height: 56px;
+  flex-direction: column;
+  gap: 2px;
+  justify-content: center;
+}
+
+/* Labels */
+.gm-labels {
+  margin-top: 8px;
+}
+.gm-labels-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px 8px 26px;
+  font-size: 14px;
+  color: var(--gm-color-on-surface-variant);
+}

@@ -1,0 +1,81 @@
+.gm-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--gm-color-divider);
+  background: var(--gm-color-surface);
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+
+.gm-tab {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1 1 0;
+  max-width: 340px;
+  min-width: 0;
+  height: 64px;
+  padding: 0 26px;
+  border: none;
+  background: transparent;
+  position: relative;
+  text-align: left;
+}
+.gm-tab:hover {
+  background: var(--gm-color-hover);
+}
+
+.gm-tab-icon {
+  flex-shrink: 0;
+}
+
+.gm-tab-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  gap: 2px;
+}
+
+.gm-tab-line1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.gm-tab-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gm-color-text-secondary);
+  white-space: nowrap;
+}
+
+.gm-tab-badge {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.gm-tab-preview {
+  font-size: 12px;
+  color: var(--gm-color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+}
+
+.gm-tab--active .gm-tab-label {
+  color: var(--tab-color);
+  font-weight: 700;
+}
+.gm-tab--active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 3px;
+  background: var(--tab-color);
+  border-radius: 3px 3px 0 0;
+}

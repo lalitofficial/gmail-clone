@@ -1,0 +1,29 @@
+{
+  "name": "@gmail-clone/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "gmail:setup": "bash ../../tools/gmail-local.sh setup",
+    "gmail": "GMAIL_LOCAL=1 vite"
+  },
+  "dependencies": {
+    "@fontsource/roboto": "^5.1.0",
+    "@gmail-clone/shared": "*",
+    "material-symbols": "^0.31.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0"
+  }
+}

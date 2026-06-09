@@ -1,0 +1,24 @@
+.gm-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--gm-color-background);
+  overflow: hidden;
+}
+
+.gm-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.gm-content {
+  flex: 1;
+  min-width: 0;
+  background: var(--gm-color-surface);
+  border-radius: 16px;
+  margin: 0 16px 16px 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}

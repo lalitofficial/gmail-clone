@@ -1,0 +1,111 @@
+.gm-settings {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.gm-settings-head {
+  font-size: 22px;
+  color: var(--gm-color-on-surface);
+  padding: 20px 24px 12px;
+}
+
+.gm-settings-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--gm-color-divider);
+}
+
+.gm-settings-tab {
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--gm-color-text-secondary);
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+}
+.gm-settings-tab:hover {
+  color: var(--gm-color-on-surface);
+}
+.gm-settings-tab--active {
+  color: var(--gm-color-primary);
+  border-bottom-color: var(--gm-color-primary);
+  font-weight: 500;
+}
+
+.gm-settings-body {
+  padding: 16px 24px 48px;
+}
+
+.gm-set-row {
+  display: flex;
+  gap: 32px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--gm-color-divider);
+}
+.gm-set-label {
+  width: 280px;
+  flex-shrink: 0;
+  font-size: 14px;
+  color: var(--gm-color-on-surface);
+}
+.gm-set-hint {
+  font-size: 12px;
+  color: var(--gm-color-text-secondary);
+  margin-top: 4px;
+}
+.gm-set-control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--gm-color-on-surface);
+}
+.gm-set-radio {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.gm-set-select {
+  height: 32px;
+  border: 1px solid var(--gm-color-outline-variant);
+  border-radius: 4px;
+  padding: 0 8px;
+  font-size: 14px;
+  background: var(--gm-color-surface);
+}
+
+.gm-set-subhead {
+  font-size: 16px;
+  margin: 16px 0 8px;
+  color: var(--gm-color-on-surface);
+}
+.gm-set-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--gm-color-divider);
+  font-size: 14px;
+}
+.gm-set-label-row span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.gm-set-muted {
+  color: var(--gm-color-text-secondary);
+  font-size: 13px;
+}
+
+.gm-settings-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 64px;
+  color: var(--gm-color-text-secondary);
+}

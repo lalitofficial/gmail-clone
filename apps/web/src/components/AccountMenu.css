@@ -1,0 +1,76 @@
+.gm-acct {
+  position: relative;
+}
+
+.gm-acct-menu {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: 320px;
+  background: var(--gm-color-surface-container);
+  border-radius: 28px;
+  box-shadow: var(--gm-elevation-3);
+  padding: 8px 0 12px;
+  z-index: 200;
+}
+
+.gm-acct-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 16px 12px;
+}
+.gm-acct-name {
+  margin-top: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--gm-color-on-surface);
+}
+.gm-acct-email {
+  font-size: 14px;
+  color: var(--gm-color-text-secondary);
+}
+
+.gm-acct-others {
+  border-top: 1px solid var(--gm-color-divider);
+  border-bottom: 1px solid var(--gm-color-divider);
+  margin: 4px 12px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--gm-color-surface);
+}
+
+.gm-acct-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 14px;
+  color: var(--gm-color-on-surface);
+}
+.gm-acct-row:hover {
+  background: var(--gm-color-hover);
+}
+
+.gm-acct-row-meta {
+  display: flex;
+  flex-direction: column;
+}
+.gm-acct-row-name {
+  font-weight: 500;
+}
+.gm-acct-row-email {
+  font-size: 12px;
+  color: var(--gm-color-text-secondary);
+}
+
+.gm-acct-icon {
+  width: 32px;
+  display: inline-flex;
+  justify-content: center;
+  color: var(--gm-color-on-surface-variant);
+}

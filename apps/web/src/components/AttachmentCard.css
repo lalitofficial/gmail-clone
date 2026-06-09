@@ -1,0 +1,42 @@
+.gm-attachment-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 248px;
+  height: 56px;
+  padding: 0 12px;
+  border: 1px solid var(--gm-color-outline-variant);
+  border-radius: var(--gm-radius-sm);
+  background: var(--gm-color-surface);
+  cursor: pointer;
+}
+.gm-attachment-card:hover {
+  background: var(--gm-color-surface-container-low);
+}
+
+.gm-attachment-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.gm-attachment-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.gm-attachment-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gm-color-on-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gm-attachment-size {
+  font-size: 12px;
+  color: var(--gm-color-text-secondary);
+}
