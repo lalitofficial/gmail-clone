@@ -28,6 +28,9 @@ apps/web/certs/
 # server data store
 apps/server/data/
 
+# large real-Gmail HTML reference snapshots (local calibration only)
+previewHTML/
+
 # misc
 .DS_Store
 *.log

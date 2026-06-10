@@ -1,0 +1,13 @@
+import { chromium } from 'playwright-core';
+const b = await chromium.launch({ channel: 'chrome', headless: true });
+const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+await ctx.addInitScript(() => localStorage.setItem('gm.account', 'lalitkofficial@gmail.com'));
+const p = await ctx.newPage();
+await p.goto('http://localhost:8081/', { waitUntil: 'networkidle' });
+await p.waitForTimeout(2000);
+await p.screenshot({ path: '/tmp/m-inbox2.png' });
+await p.click('text=Re: Project sync').catch(() => {});
+await p.waitForTimeout(1500);
+await p.screenshot({ path: '/tmp/m-thread2.png' });
+await b.close();
+console.log('saved');
