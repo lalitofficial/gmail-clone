@@ -1,19 +1,84 @@
 .gm-search {
+  position: relative;
   display: flex;
   align-items: center;
   width: 100%;
   max-width: var(--gm-search-max-width);
   height: 48px;
   background: var(--gm-color-surface-container-high);
-  border-radius: var(--gm-radius-sm);
+  border-radius: var(--gm-radius-lg); /* 24px pill — measured from real Gmail */
   padding: 0 4px;
   transition: background 120ms ease, box-shadow 120ms ease;
+}
+
+.gm-search-options {
+  position: absolute;
+  top: 56px;
+  right: 0;
+  z-index: 180;
+  width: min(720px, calc(100vw - 40px));
+  padding: 24px;
+  border-radius: 8px;
+  background: var(--gm-color-surface);
+  box-shadow: var(--gm-elevation-3);
+}
+
+.gm-search-options > label:not(.gm-search-check) {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  align-items: center;
+  min-height: 44px;
+  color: var(--gm-color-text-secondary);
+  font-size: 13px;
+}
+
+.gm-search-options input[type='text'],
+.gm-search-options > label:not(.gm-search-check) input {
+  height: 34px;
+  padding: 0 8px;
+  border: 0;
+  border-bottom: 1px solid var(--gm-color-outline);
+  outline: 0;
+  color: var(--gm-color-on-surface);
+}
+
+.gm-search-options input:focus {
+  border-bottom-color: var(--gm-color-primary);
+}
+
+.gm-search-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 8px 130px;
+}
+
+.gm-search-options-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.gm-search-options-actions button {
+  height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: var(--gm-color-primary);
+  font-weight: 500;
+}
+
+.gm-search-options-actions .gm-search-options-submit {
+  background: var(--gm-color-primary);
+  color: #fff;
 }
 
 .gm-search--focused {
   background: var(--gm-color-surface);
   box-shadow: var(--gm-elevation-1);
-  border-radius: var(--gm-radius-sm) var(--gm-radius-sm);
 }
 
 .gm-search-icon {

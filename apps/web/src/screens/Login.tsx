@@ -1,18 +1,22 @@
-import type { ApiAccount } from '../api/client';
+import { useState } from 'react';
+import { api, type ApiAccount } from '../api/client';
 import { Avatar } from '../components/Avatar';
 import { Icon } from '../components/Icon';
 import './Login.css';
 
-function GoogleG({ size = 24 }: { size?: number }) {
+/** Full multicolor "Google" wordmark (Product Sans / app-font fallback). */
+function GoogleWordmark() {
+  const colors = ['#4285F4', '#EA4335', '#FBBC05', '#4285F4', '#34A853', '#EA4335'];
   return (
-    <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">
-      <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z" />
-      <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z" />
-      <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34A21.99 21.99 0 0 0 2 24c0 3.55.85 6.91 2.34 9.88l7.35-5.7z" />
-      <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z" />
-    </svg>
+    <div className="gm-google-wordmark" aria-label="Google">
+      {'Google'.split('').map((ch, i) => (
+        <span key={i} style={{ color: colors[i] }}>{ch}</span>
+      ))}
+    </div>
   );
 }
+
+type Step = 'chooser' | 'email' | 'password';
 
 export function Login({
   allAccounts,
@@ -22,42 +26,139 @@ export function Login({
   signedIn: ApiAccount[];
   onPick: (email: string) => void;
 }) {
+  const [step, setStep] = useState<Step>('chooser');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const account = allAccounts.find((a) => a.email === email);
+
+  const goPassword = (e: string) => {
+    setEmail(e);
+    setPassword('');
+    setError('');
+    setStep('password');
+  };
+
+  const submitEmail = () => {
+    if (!email.trim()) return setError('Enter an email or phone number');
+    if (!allAccounts.some((a) => a.email === email.trim())) {
+      return setError('Couldn’t find your Google Account');
+    }
+    goPassword(email.trim());
+  };
+
+  const submitPassword = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      await api.login(email, password);
+      onPick(email); // success → register + redirect
+    } catch (err) {
+      setError((err as Error).message === 'wrong_password' ? 'Wrong password. Try again.' : 'Couldn’t sign you in');
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="gm-login">
       <div className="gm-login-card">
-        <div className="gm-login-head">
-          <GoogleG size={26} />
-          <h1 className="gm-login-title">Choose an account</h1>
-          <p className="gm-login-sub">to continue to Gmail</p>
-        </div>
-
-        <div className="gm-login-list">
-          {allAccounts.map((a) => (
-            <button key={a.email} className="gm-login-row" onClick={() => onPick(a.email)}>
-              <Avatar initial={a.initial} color={a.avatarColor} size={36} />
-              <div className="gm-login-meta">
-                <span className="gm-login-name">{a.name}</span>
-                <span className="gm-login-email">{a.email}</span>
-              </div>
-            </button>
-          ))}
-
-          <button className="gm-login-row gm-login-another">
-            <div className="gm-login-another-icon">
-              <Icon name="person_add" size={20} />
+        {step === 'chooser' && (
+          <>
+            <div className="gm-login-head">
+              <GoogleWordmark />
+              <h1 className="gm-login-title">Choose an account</h1>
+              <p className="gm-login-sub">to continue to Gmail</p>
             </div>
-            <span className="gm-login-name">Use another account</span>
-          </button>
-        </div>
+            <div className="gm-login-list">
+              {allAccounts.map((a) => (
+                <button key={a.email} className="gm-login-row" onClick={() => goPassword(a.email)}>
+                  <Avatar initial={a.initial} color={a.avatarColor} size={36} />
+                  <div className="gm-login-meta">
+                    <span className="gm-login-name">{a.name}</span>
+                    <span className="gm-login-email">{a.email}</span>
+                  </div>
+                </button>
+              ))}
+              <button className="gm-login-row" onClick={() => { setEmail(''); setError(''); setStep('email'); }}>
+                <div className="gm-login-another-icon"><Icon name="person_add" size={20} /></div>
+                <span className="gm-login-name">Use another account</span>
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === 'email' && (
+          <div className="gm-login-form">
+            <div className="gm-login-form-head">
+              <GoogleWordmark />
+              <h1 className="gm-login-title">Sign in</h1>
+              <p className="gm-login-sub">Use your Google Account</p>
+            </div>
+            <div className="gm-tf">
+              <input
+                className={`gm-tf-input${error ? ' gm-tf-input--err' : ''}`}
+                placeholder=" "
+                value={email}
+                autoFocus
+                onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && submitEmail()}
+              />
+              <label className="gm-tf-label">Email or phone</label>
+            </div>
+            {error && <div className="gm-login-err">{error}</div>}
+            <a className="gm-login-link" href="#" onClick={(e) => e.preventDefault()}>Forgot email?</a>
+            <p className="gm-login-helper">
+              Not your computer? Use a private browsing window to sign in.{' '}
+              <a className="gm-login-link" href="#" onClick={(e) => e.preventDefault()}>Learn more about using Guest mode</a>
+            </p>
+            <div className="gm-login-actions">
+              <button className="gm-login-text-btn" onClick={() => setStep('chooser')}>Create account</button>
+              <button className="gm-login-next" onClick={submitEmail}>Next</button>
+            </div>
+          </div>
+        )}
+
+        {step === 'password' && (
+          <div className="gm-login-form">
+            <div className="gm-login-form-head">
+              <GoogleWordmark />
+              <h1 className="gm-login-title">Welcome</h1>
+              <div className="gm-login-chip">
+                {account && <Avatar initial={account.initial} color={account.avatarColor} size={20} />}
+                <span>{email}</span>
+                <Icon name="arrow_drop_down" size={18} />
+              </div>
+            </div>
+            <div className="gm-tf">
+              <input
+                className={`gm-tf-input${error ? ' gm-tf-input--err' : ''}`}
+                type={showPw ? 'text' : 'password'}
+                placeholder=" "
+                value={password}
+                autoFocus
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && submitPassword()}
+              />
+              <label className="gm-tf-label">Enter your password</label>
+            </div>
+            {error && <div className="gm-login-err">{error}</div>}
+            <label className="gm-login-showpw">
+              <input type="checkbox" checked={showPw} onChange={(e) => setShowPw(e.target.checked)} /> Show password
+            </label>
+            <div className="gm-login-actions">
+              <button className="gm-login-text-btn" onClick={() => setStep('chooser')}>Back</button>
+              <button className="gm-login-next" onClick={submitPassword} disabled={busy}>{busy ? 'Signing in…' : 'Next'}</button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="gm-login-footer">
         <span>English (United States)</span>
-        <div className="gm-login-footer-links">
-          <span>Help</span>
-          <span>Privacy</span>
-          <span>Terms</span>
-        </div>
+        <div className="gm-login-footer-links"><span>Help</span><span>Privacy</span><span>Terms</span></div>
       </div>
     </div>
   );

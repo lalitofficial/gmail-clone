@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { labels as labelData, unreadCount, emailsInFolder, type Folder } from '@gmail-clone/shared';
+import { unreadCount, emailsInFolder, type Folder } from '@gmail-clone/shared';
 import { Icon } from './Icon';
 import { useMailbox } from '../store/MailboxContext';
-import { hrefFolder, hrefLabel, useRoute } from '../router';
+import { hrefFolder, hrefLabel, hrefSettings, useRoute } from '../router';
 import './Sidebar.css';
 
 interface NavItem {
@@ -13,7 +13,7 @@ interface NavItem {
 }
 
 export function Sidebar({ open }: { open: boolean }) {
-  const { emails, openCompose } = useMailbox();
+  const { emails, openCompose, labels, createLabel } = useMailbox();
   const route = useRoute();
   const [showMore, setShowMore] = useState(false);
 
@@ -29,6 +29,7 @@ export function Sidebar({ open }: { open: boolean }) {
   ];
   const more: NavItem[] = [
     { icon: 'label_important', label: 'Important', folder: 'important' },
+    { icon: 'schedule_send', label: 'Scheduled', folder: 'scheduled' },
     { icon: 'mark_email_unread', label: 'All Mail', folder: 'allMail' },
     { icon: 'report', label: 'Spam', folder: 'spam' },
     { icon: 'delete', label: 'Trash', folder: 'trash' },
@@ -63,16 +64,29 @@ export function Sidebar({ open }: { open: boolean }) {
           <div className="gm-labels">
             <div className="gm-labels-header">
               <span>Labels</span>
-              <button className="gm-icon-btn" aria-label="Create label" style={{ width: 28, height: 28 }}>
+              <button
+                className="gm-icon-btn"
+                aria-label="Create new label"
+                title="Create new label"
+                style={{ width: 28, height: 28 }}
+                onClick={() => {
+                  const name = window.prompt('New label name');
+                  if (name?.trim()) createLabel(name.trim());
+                }}
+              >
                 <Icon name="add" size={18} />
               </button>
             </div>
-            {labelData.map((l) => (
+            {labels.map((l) => (
               <a className={`gm-nav-item${route.view === 'list' && route.label === l.name ? ' gm-nav-item--active' : ''}`} key={l.id} href={hrefLabel(l.name)}>
                 <Icon name="label" size={20} className="gm-nav-icon" color={l.color} />
                 <span className="gm-nav-label">{l.name}</span>
               </a>
             ))}
+            <a className="gm-nav-item" href={hrefSettings('labels')}>
+              <Icon name="settings" size={20} className="gm-nav-icon" />
+              <span className="gm-nav-label">Manage labels</span>
+            </a>
           </div>
         )}
       </div>

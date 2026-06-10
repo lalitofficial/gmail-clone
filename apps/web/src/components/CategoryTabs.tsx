@@ -1,6 +1,7 @@
 import { byNewest, inboxForCategory, unreadCount, type Category } from '@gmail-clone/shared';
 import { Icon } from './Icon';
 import { useMailbox } from '../store/MailboxContext';
+import { useSettings } from '../settings';
 import { hrefCategory, navigate, useRoute } from '../router';
 import './CategoryTabs.css';
 
@@ -13,12 +14,14 @@ const TABS: { id: Category; label: string; icon: string; colorVar: string }[] = 
 
 export function CategoryTabs() {
   const { emails } = useMailbox();
+  const settings = useSettings();
   const route = useRoute();
   const category: Category = route.view === 'list' ? route.category ?? 'primary' : 'primary';
+  const visibleTabs = TABS.filter((t) => settings.tabs[t.id]);
 
   return (
     <div className="gm-tabs">
-      {TABS.map((tab) => {
+      {visibleTabs.map((tab) => {
         const active = tab.id === category;
         const count = unreadCount(emails, tab.id);
         const latest = inboxForCategory(emails, tab.id)

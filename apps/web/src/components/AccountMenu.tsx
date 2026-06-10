@@ -31,6 +31,9 @@ export function AccountMenu() {
             <Avatar initial={account.initial} color={account.avatarColor} size={64} />
             <div className="gm-acct-name">{account.name}</div>
             <div className="gm-acct-email">{account.email}</div>
+            <a className="gm-acct-manage" href="https://myaccount.google.com/" target="_blank" rel="noreferrer">
+              Manage your Google Account
+            </a>
           </div>
 
           {others.length > 0 && (
@@ -59,6 +62,7 @@ export function AccountMenu() {
             <span className="gm-acct-icon"><Icon name="logout" size={20} /></span>
             Sign out
           </button>
+          <div className="gm-acct-footer"><span>Privacy Policy</span><span>•</span><span>Terms of Service</span></div>
         </div>
       )}
     </div>

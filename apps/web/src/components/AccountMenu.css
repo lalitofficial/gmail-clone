@@ -31,6 +31,24 @@
   color: var(--gm-color-text-secondary);
 }
 
+.gm-acct-manage {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  margin-top: 16px;
+  padding: 0 18px;
+  border: 1px solid var(--gm-color-outline-variant);
+  border-radius: 18px;
+  color: var(--gm-color-primary);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.gm-acct-manage:hover {
+  background: rgba(11, 87, 208, 0.06);
+}
+
 .gm-acct-others {
   border-top: 1px solid var(--gm-color-divider);
   border-bottom: 1px solid var(--gm-color-divider);
@@ -73,4 +91,13 @@
   display: inline-flex;
   justify-content: center;
   color: var(--gm-color-on-surface-variant);
+}
+
+.gm-acct-footer {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 12px 0;
+  color: var(--gm-color-text-secondary);
+  font-size: 11px;
 }

@@ -14,6 +14,46 @@
   flex-shrink: 0;
 }
 
+.gm-thread-menu-wrap {
+  position: relative;
+}
+
+.gm-thread-menu {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  z-index: 80;
+  min-width: 210px;
+  padding: 8px 0;
+  border: 1px solid var(--gm-color-outline-variant);
+  border-radius: 8px;
+  background: var(--gm-color-surface);
+  box-shadow: var(--gm-elevation-3);
+}
+
+.gm-thread-menu-title {
+  padding: 8px 16px;
+  color: var(--gm-color-text-secondary);
+  font-size: 12px;
+}
+
+.gm-thread-menu button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 16px;
+  border: 0;
+  background: transparent;
+  color: var(--gm-color-on-surface);
+  text-align: left;
+}
+
+.gm-thread-menu button:hover {
+  background: var(--gm-color-hover);
+}
+
 .gm-thread-toolbar-divider {
   width: 1px;
   height: 24px;
@@ -91,6 +131,49 @@
 .gm-message {
   display: flex;
   gap: 16px;
+  padding-bottom: 20px;
+}
+
+/* Collapsed older messages in a conversation */
+.gm-msg-collapsed {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 0;
+  border: none;
+  border-top: 1px solid var(--gm-color-divider);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.gm-msg-collapsed:hover {
+  background: var(--gm-color-hover);
+}
+.gm-msg-collapsed-sender {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gm-color-on-surface);
+  flex-shrink: 0;
+}
+.gm-msg-collapsed-snippet {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  color: var(--gm-color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gm-msg-collapsed-date {
+  font-size: 12px;
+  color: var(--gm-color-text-secondary);
+  flex-shrink: 0;
+}
+
+.gm-thread-count-chip {
+  font-size: 14px;
+  color: var(--gm-color-text-secondary);
 }
 
 .gm-message-content {
@@ -106,6 +189,7 @@
 }
 
 .gm-message-meta {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -129,6 +213,46 @@
   font-size: 12px;
   color: var(--gm-color-text-secondary);
   flex-basis: 100%;
+  width: max-content;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.gm-message-details {
+  position: absolute;
+  top: 42px;
+  left: 0;
+  z-index: 70;
+  width: min(620px, calc(100vw - 380px));
+  padding: 16px 20px;
+  border: 1px solid var(--gm-color-outline-variant);
+  border-radius: 8px;
+  background: var(--gm-color-surface);
+  box-shadow: var(--gm-elevation-2);
+}
+
+.gm-message-details dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 12px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.gm-message-details dt {
+  color: var(--gm-color-text-secondary);
+  text-align: right;
+}
+
+.gm-message-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.gm-message-id {
+  font-family: monospace;
+  user-select: all;
 }
 
 .gm-message-actions {
@@ -136,6 +260,38 @@
   align-items: center;
   gap: 2px;
   flex-shrink: 0;
+}
+
+.gm-message-menu-wrap {
+  position: relative;
+}
+
+.gm-message-menu {
+  position: absolute;
+  top: 38px;
+  right: 0;
+  z-index: 75;
+  min-width: 160px;
+  padding: 8px 0;
+  border: 1px solid var(--gm-color-outline-variant);
+  border-radius: 8px;
+  background: var(--gm-color-surface);
+  box-shadow: var(--gm-elevation-3);
+}
+
+.gm-message-menu button {
+  display: block;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 16px;
+  border: 0;
+  background: transparent;
+  color: var(--gm-color-on-surface);
+  text-align: left;
+}
+
+.gm-message-menu button:hover {
+  background: var(--gm-color-hover);
 }
 
 .gm-message-date {
@@ -147,9 +303,11 @@
 
 .gm-message-text {
   margin-top: 16px;
+  /* Gmail renders message content in Arial (sans-serif), default ~14px / line-height 1.5. */
+  font-family: Arial, Helvetica, sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--gm-color-on-surface);
+  color: #202124;
 }
 .gm-message-text p {
   margin: 0;
