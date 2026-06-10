@@ -21,11 +21,14 @@ interface MailboxValue {
   getEmail: (id: string) => Email | undefined;
   refresh: () => void;
   toggleStar: (id: string) => void;
+  toggleImportant: (id: string) => void;
   toggleRead: (id: string) => void;
   markRead: (id: string, read: boolean) => void;
   archive: (id: string) => void;
   trash: (id: string) => void;
-  sendEmail: (draft: { to: string; subject: string; body: string }) => void;
+  spam: (id: string) => void;
+  snooze: (id: string) => void;
+  sendEmail: (draft: { to: string; subject: string; body: string; threadId?: string }) => void;
 }
 
 const MailboxContext = createContext<MailboxValue | null>(null);
@@ -102,9 +105,32 @@ export function MailboxProvider({ children }: { children: ReactNode }) {
     },
     [email, patch, refresh],
   );
+  const spam = useCallback(
+    (id: string) => {
+      patch(id, { folder: 'spam' });
+      api.action(email, id, 'spam').catch(refresh);
+    },
+    [email, patch, refresh],
+  );
+  const snooze = useCallback(
+    (id: string) => {
+      patch(id, { folder: 'snoozed', snoozed: true });
+      api.action(email, id, 'snooze').catch(refresh);
+    },
+    [email, patch, refresh],
+  );
+  const toggleImportant = useCallback(
+    (id: string) => {
+      const cur = emails.find((e) => e.id === id);
+      const important = !cur?.important;
+      patch(id, { important });
+      api.action(email, id, important ? 'important' : 'not-important').catch(refresh);
+    },
+    [emails, email, patch, refresh],
+  );
 
   const sendEmail = useCallback(
-    (draft: { to: string; subject: string; body: string }) => {
+    (draft: { to: string; subject: string; body: string; threadId?: string }) => {
       api.send(email, draft).then(refresh).catch(() => {});
     },
     [email, refresh],
@@ -114,9 +140,9 @@ export function MailboxProvider({ children }: { children: ReactNode }) {
     () => ({
       emails, category, folder, loading,
       setCategory, setFolder, getEmail, refresh,
-      toggleStar, toggleRead, markRead, archive, trash, sendEmail,
+      toggleStar, toggleImportant, toggleRead, markRead, archive, trash, spam, snooze, sendEmail,
     }),
-    [emails, category, folder, loading, getEmail, refresh, toggleStar, toggleRead, markRead, archive, trash, sendEmail],
+    [emails, category, folder, loading, getEmail, refresh, toggleStar, toggleImportant, toggleRead, markRead, archive, trash, spam, snooze, sendEmail],
   );
 
   return <MailboxContext.Provider value={value}>{children}</MailboxContext.Provider>;

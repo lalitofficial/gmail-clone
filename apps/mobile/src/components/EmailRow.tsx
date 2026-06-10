@@ -35,7 +35,8 @@ export function EmailRow({
       <View style={styles.text}>
         <View style={styles.line1}>
           <Text style={[styles.sender, unread && styles.bold]} numberOfLines={1}>
-            {email.from.name}
+            {email.participants && email.participants.length > 0 ? email.participants.join(', ') : email.from.name}
+            {email.messageCount && email.messageCount > 1 ? `  ${email.messageCount}` : ''}
           </Text>
           <Text style={[styles.time, unread && styles.timeUnread]} numberOfLines={1}>
             {formatListDate(email.date)}

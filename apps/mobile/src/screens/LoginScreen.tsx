@@ -1,7 +1,8 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
-import type { ApiAccount } from '../api';
+import { api, type ApiAccount } from '../api';
 import { c, fontFamily } from '../theme';
 import { Avatar } from '../components/Avatar';
 import { Icon } from '../components/Icon';
@@ -18,30 +19,76 @@ function GoogleG({ size = 28 }: { size?: number }) {
 }
 
 export function LoginScreen({ accounts, onPick }: { accounts: ApiAccount[]; onPick: (email: string) => void }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const account = accounts.find((a) => a.email === email);
+
+  const signIn = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      await api.login(email, password);
+      onPick(email);
+    } catch (e) {
+      setError((e as Error).message === 'wrong_password' ? 'Wrong password. Try again.' : 'Couldn’t sign you in');
+      setBusy(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.head}>
           <GoogleG size={28} />
-          <Text style={styles.title}>Choose an account</Text>
-          <Text style={styles.sub}>to continue to Gmail</Text>
+          <Text style={styles.title}>{email ? 'Welcome' : 'Choose an account'}</Text>
+          {!email && <Text style={styles.sub}>to continue to Gmail</Text>}
+          {email && (
+            <View style={styles.chip}>
+              {account && <Avatar initial={account.initial} color={account.avatarColor} size={20} />}
+              <Text style={styles.chipText}>{email}</Text>
+            </View>
+          )}
         </View>
 
-        <View style={styles.list}>
-          {accounts.map((a) => (
-            <Pressable key={a.email} style={styles.row} onPress={() => onPick(a.email)}>
-              <Avatar initial={a.initial} color={a.avatarColor} size={36} />
-              <View>
-                <Text style={styles.name}>{a.name}</Text>
-                <Text style={styles.email}>{a.email}</Text>
-              </View>
+        {!email ? (
+          <View style={styles.list}>
+            {accounts.map((a) => (
+              <Pressable key={a.email} style={styles.row} onPress={() => { setEmail(a.email); setPassword(''); setError(''); }}>
+                <Avatar initial={a.initial} color={a.avatarColor} size={36} />
+                <View>
+                  <Text style={styles.name}>{a.name}</Text>
+                  <Text style={styles.email}>{a.email}</Text>
+                </View>
+              </Pressable>
+            ))}
+            <Pressable style={styles.row}>
+              <View style={styles.anotherIcon}><Icon name="person-add" size={20} color={c.onSurfaceVariant} /></View>
+              <Text style={styles.name}>Use another account</Text>
             </Pressable>
-          ))}
-          <Pressable style={styles.row}>
-            <View style={styles.anotherIcon}><Icon name="person-add" size={20} color={c.onSurfaceVariant} /></View>
-            <Text style={styles.name}>Use another account</Text>
-          </Pressable>
-        </View>
+          </View>
+        ) : (
+          <View style={styles.pwBox}>
+            <TextInput
+              style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Enter your password"
+              placeholderTextColor={c.textSecondary}
+              secureTextEntry
+              autoFocus
+              onSubmitEditing={signIn}
+            />
+            {error ? <Text style={styles.error}>{error}</Text> : null}
+            <View style={styles.actions}>
+              <Pressable onPress={() => { setEmail(''); setError(''); }}><Text style={styles.back}>Back</Text></Pressable>
+              <Pressable style={styles.next} onPress={signIn} disabled={busy}>
+                <Text style={styles.nextText}>{busy ? 'Signing in…' : 'Next'}</Text>
+              </Pressable>
+            </View>
+          </View>
+        )}
 
         {accounts.length === 0 && (
           <Text style={styles.error}>Can’t reach the server. Make sure it’s running and you’re on the same network.</Text>
@@ -57,13 +104,18 @@ const styles = StyleSheet.create({
   head: { alignItems: 'center', marginBottom: 24 },
   title: { fontSize: 24, color: c.onSurface, fontFamily: fontFamily.regular, marginTop: 16 },
   sub: { fontSize: 14, color: c.onSurface, fontFamily: fontFamily.regular, marginTop: 6 },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16, paddingVertical: 4, paddingHorizontal: 12, borderWidth: 1, borderColor: c.outlineVariant, borderRadius: 16 },
+  chipText: { fontSize: 14, color: c.onSurface, fontFamily: fontFamily.regular },
   list: { borderTopWidth: 1, borderTopColor: c.divider },
-  row: {
-    flexDirection: 'row', alignItems: 'center', gap: 16, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: c.divider,
-  },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: c.divider },
   name: { fontSize: 15, color: c.onSurface, fontFamily: fontFamily.medium },
   email: { fontSize: 13, color: c.textSecondary, fontFamily: fontFamily.regular },
   anotherIcon: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  error: { marginTop: 24, color: c.error, fontFamily: fontFamily.regular, textAlign: 'center' },
+  pwBox: { marginTop: 8 },
+  input: { height: 56, borderWidth: 1, borderColor: c.outline, borderRadius: 8, paddingHorizontal: 14, fontSize: 16, color: c.onSurface, fontFamily: fontFamily.regular },
+  error: { marginTop: 12, color: c.error, fontFamily: fontFamily.regular, textAlign: 'center' },
+  actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 24 },
+  back: { color: c.primary, fontFamily: fontFamily.medium, fontSize: 14, padding: 8 },
+  next: { backgroundColor: '#1a73e8', borderRadius: 4, paddingHorizontal: 24, height: 36, alignItems: 'center', justifyContent: 'center' },
+  nextText: { color: '#fff', fontFamily: fontFamily.medium, fontSize: 14 },
 });

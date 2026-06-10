@@ -23,7 +23,7 @@ export function ComposeScreen() {
   const [body, setBody] = useState(params?.body ?? '');
 
   const send = () => {
-    sendEmail({ to, subject, body });
+    sendEmail({ to, subject, body, threadId: params?.threadId });
     navigation.goBack();
   };
 

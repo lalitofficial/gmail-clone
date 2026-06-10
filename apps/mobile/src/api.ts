@@ -36,7 +36,22 @@ export const api = {
     return fetch(`${API_BASE}/api/messages?${p}`, { headers: auth(email) }).then(json<Email[]>);
   },
 
-  send: (email: string, body: { to: string; subject: string; body: string }) =>
+  login: async (email: string, password: string): Promise<ApiAccount> => {
+    const res = await fetch(`${API_BASE}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    if (res.status === 404) throw new Error('account_not_found');
+    if (res.status === 401) throw new Error('wrong_password');
+    if (!res.ok) throw new Error('error');
+    return res.json() as Promise<ApiAccount>;
+  },
+
+  thread: (email: string, threadId: string) =>
+    fetch(`${API_BASE}/api/thread/${threadId}`, { headers: auth(email) }).then(json<Email[]>),
+
+  send: (email: string, body: { to: string; subject: string; body: string; threadId?: string }) =>
     fetch(`${API_BASE}/api/send`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...auth(email) },
