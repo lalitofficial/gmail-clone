@@ -10,8 +10,19 @@
   color: var(--gm-color-text-secondary);
 }
 
+:root[data-density='comfortable'] .gm-row {
+  height: 48px;
+}
+
+:root[data-density='compact'] .gm-row {
+  height: 32px;
+}
+
 .gm-row--read {
   background: #f2f6fc;
+}
+:root[data-theme='dark'] .gm-row--read {
+  background: #2a2a2a;
 }
 .gm-row--unread {
   background: var(--gm-color-surface);
@@ -26,7 +37,8 @@
 }
 
 .gm-row-check,
-.gm-row-star {
+.gm-row-star,
+.gm-row-important {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -37,10 +49,39 @@
   border-radius: 50%;
   flex-shrink: 0;
   color: var(--gm-color-on-surface-variant);
+  transition: background 120ms ease;
 }
 .gm-row-check:hover,
-.gm-row-star:hover {
+.gm-row-star:hover,
+.gm-row-important:hover {
   background: var(--gm-color-hover);
+}
+
+/* Hovering the idle star previews the filled color, like Gmail. */
+.gm-row-star .material-symbols-outlined {
+  transition: color 100ms ease;
+}
+.gm-row-star:not(.gm-row-star--on):hover .material-symbols-outlined {
+  color: var(--gm-color-on-surface) !important;
+}
+.gm-row-star--on .material-symbols-outlined {
+  animation: gm-star-pop 250ms var(--gm-ease-standard);
+}
+@keyframes gm-star-pop {
+  0% {
+    transform: scale(0.5);
+  }
+  60% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.gm-row-important {
+  width: 28px;
+  height: 40px;
 }
 
 .gm-row-sender {
@@ -50,6 +91,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
   padding-right: 12px;
+}
+
+.gm-row-count {
+  color: var(--gm-color-text-secondary);
+  font-weight: 400;
+  font-size: 13px;
 }
 
 .gm-row-main {
@@ -114,9 +161,16 @@
   right: 8px;
   background: inherit;
 }
+.gm-row--selected .gm-row-actions {
+  background: #c2dbff;
+}
 .gm-row:hover .gm-row-date {
   visibility: hidden;
 }
 .gm-row:hover .gm-row-actions {
   display: flex;
+}
+.gm-row-actions .gm-icon-btn {
+  width: 36px;
+  height: 36px;
 }

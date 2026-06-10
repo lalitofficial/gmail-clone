@@ -67,6 +67,12 @@ textarea {
   background-clip: content-box;
 }
 
+/* Material 3 motion (Gmail uses the "emphasized" curve for surfaces, "standard" for state changes). */
+:root {
+  --gm-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --gm-ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+}
+
 /* Reusable icon-button (top bar, toolbar, row actions). */
 .gm-icon-btn {
   display: inline-flex;
@@ -85,4 +91,39 @@ textarea {
 }
 .gm-icon-btn:active {
   background: var(--gm-color-pressed);
+}
+
+/* Keyboard focus ring (Gmail shows a subtle inner ring, not the UA default). */
+:focus-visible {
+  outline: 2px solid var(--gm-color-primary);
+  outline-offset: -2px;
+}
+
+/* Dropdown surfaces pop in with a quick fade + settle, anchored to their origin. */
+.gm-toolbar-menu,
+.gm-search-options,
+.gm-compose-send-menu,
+.gm-acct-menu,
+.gm-google-apps-menu {
+  transform-origin: top left;
+  animation: gm-menu-in 120ms var(--gm-ease-decelerate);
+}
+.gm-toolbar-menu--right,
+.gm-acct-menu,
+.gm-google-apps-menu {
+  transform-origin: top right;
+}
+.gm-compose-send-menu {
+  transform-origin: bottom left;
+}
+
+@keyframes gm-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

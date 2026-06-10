@@ -36,9 +36,11 @@ export function MailListScreen({ route }: { route: Extract<Route, { view: 'list'
         : folderLabel(route.folder),
   );
 
+  const listIds = list.map((e) => e.id);
+
   return (
     <div className="gm-list-screen">
-      <InboxToolbar count={list.length} />
+      <InboxToolbar count={list.length} ids={listIds} />
       {isInbox && <CategoryTabs />}
 
       <div className="gm-list">
@@ -48,7 +50,7 @@ export function MailListScreen({ route }: { route: Extract<Route, { view: 'list'
             <p>No conversations</p>
           </div>
         ) : (
-          list.map((email) => <EmailRow key={email.id} email={email} />)
+          list.map((email) => <EmailRow key={email.id} email={email} orderedIds={listIds} />)
         )}
       </div>
     </div>
