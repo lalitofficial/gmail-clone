@@ -54,6 +54,12 @@ export interface Email {
   category: Category;
   folder: Folder;
   snoozed: boolean;
+  /** CC / BCC recipients (compose + thread details). */
+  cc?: Contact[];
+  bcc?: Contact[];
+  /** Thread-summary fields (set on list rows that represent a conversation). */
+  messageCount?: number;
+  participants?: string[];
 }
 
 export interface Label {

@@ -64,18 +64,42 @@ export function unreadCount(emails: Email[], category?: Category): number {
   ).length;
 }
 
-/** Case-insensitive search across sender, subject, snippet, body. */
+/** Case-insensitive search with a small set of Gmail-compatible operators. */
 export function searchEmails(emails: Email[], query: string): Email[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
+  const operator = (name: string) => q.match(new RegExp(`(?:^|\\s)${name}:([^\\s]+)`))?.[1];
+  const from = operator('from');
+  const to = operator('to');
+  const subject = operator('subject');
+  const wantsAttachment = /(?:^|\s)has:attachment(?:\s|$)/.test(q);
+  const excluded = [...q.matchAll(/(?:^|\s)-([^\s]+)/g)].map((match) => match[1]);
+  const plain = q
+    .replace(/(?:^|\s)(?:from|to|subject):[^\s]+/g, ' ')
+    .replace(/(?:^|\s)has:attachment/g, ' ')
+    .replace(/(?:^|\s)-[^\s]+/g, ' ')
+    .trim();
+
   return emails.filter((e) => {
     if (e.folder === 'trash' || e.folder === 'spam') return false;
+    const haystack = [
+      e.from.name,
+      e.from.email,
+      ...e.to.flatMap((contact) => [contact.name, contact.email]),
+      e.subject,
+      e.snippet,
+      e.body,
+    ].join(' ').toLowerCase();
+    if (from && !`${e.from.name} ${e.from.email}`.toLowerCase().includes(from)) return false;
+    if (to && !e.to.some((contact) => `${contact.name} ${contact.email}`.toLowerCase().includes(to))) return false;
+    if (subject && !e.subject.toLowerCase().includes(subject)) return false;
+    if (wantsAttachment && !e.hasAttachment) return false;
+    if (excluded.some((term) => haystack.includes(term))) return false;
+    if (!plain) return true;
     return (
       e.from.name.toLowerCase().includes(q) ||
       e.from.email.toLowerCase().includes(q) ||
-      e.subject.toLowerCase().includes(q) ||
-      e.snippet.toLowerCase().includes(q) ||
-      e.body.toLowerCase().includes(q)
+      haystack.includes(plain)
     );
   });
 }

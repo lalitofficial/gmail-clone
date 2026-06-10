@@ -21,15 +21,15 @@ export const tokens = {
     secondaryContainer: '#d3e3fd',
     onSecondaryContainer: '#001d35',
 
-    // Surfaces
-    background: '#f6f8fc', // app backdrop (top bar + gutter share this)
+    // Surfaces (measured from real Gmail)
+    background: '#f8fafd', // app backdrop (top bar + gutter share this)
     surface: '#ffffff', // white mail-list / card surface
-    surfaceContainerLow: '#f6f8fc',
+    surfaceContainerLow: '#f8fafd',
     surfaceContainer: '#f0f4f9', // sidebar / panels
-    surfaceContainerHigh: '#eaf1fb', // search field resting bg
+    surfaceContainerHigh: '#e9eef6', // search field resting bg
 
-    // Text + icons
-    onSurface: '#1f1f1f', // primary text (unread sender/subject)
+    // Text + icons (measured from real Gmail)
+    onSurface: '#202124', // primary text (#202124 = rgb 32,33,36)
     onSurfaceVariant: '#444746', // secondary text + default icon color
     textSecondary: '#5f6368', // read rows, snippet, timestamps
 
@@ -54,6 +54,36 @@ export const tokens = {
     categorySocial: '#1a73e8',
   },
 
+  /** Gmail dark theme (M3 dark surfaces). Same keys as `color`. */
+  colorDark: {
+    primary: '#a8c7fa',
+    onPrimary: '#062e6f',
+    primaryContainer: '#a8c7fa',
+    onPrimaryContainer: '#062e6f',
+    secondaryContainer: '#004a77',
+    onSecondaryContainer: '#c2e7ff',
+    background: '#1f1f1f',
+    surface: '#1e1e1e',
+    surfaceContainerLow: '#1f1f1f',
+    surfaceContainer: '#2a2a2a',
+    surfaceContainerHigh: '#2d2e30',
+    onSurface: '#e3e3e3',
+    onSurfaceVariant: '#c4c7c5',
+    textSecondary: '#9aa0a6',
+    outline: '#8e918f',
+    outlineVariant: '#444746',
+    divider: '#3c4043',
+    hover: 'rgba(255,255,255,0.08)',
+    pressed: 'rgba(255,255,255,0.12)',
+    star: '#fdd663',
+    starIdle: '#9aa0a6',
+    error: '#f28b82',
+    success: '#81c995',
+    categoryPrimary: '#8ab4f8',
+    categoryPromotions: '#81c995',
+    categorySocial: '#8ab4f8',
+  },
+
   /** Avatar circle background palette (deterministic by sender). */
   avatarPalette: [
     '#1a73e8',
@@ -69,10 +99,9 @@ export const tokens = {
   ],
 
   font: {
-    // Current Gmail renders most UI in Google Sans (proprietary, not bundleable);
-    // listed first so it's used where available, with Roboto as the faithful fallback.
-    family:
-      "'Google Sans', 'Google Sans Text', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    // Exact stack measured from real Gmail (Google Sans is proprietary/not bundleable,
+    // so Roboto is the faithful fallback where it isn't installed).
+    family: '"Google Sans", Roboto, RobotoDraft, Helvetica, Arial, sans-serif',
     // Roboto-derived type scale (px sizes, rn-friendly numbers).
     size: {
       xs: 11,
@@ -144,9 +173,8 @@ export function avatarColorFor(seed: string): string {
   return tokens.avatarPalette[hash % tokens.avatarPalette.length];
 }
 
-/** Build the `:root` CSS custom-property declarations for the web app. */
-export function cssVariables(): string {
-  const c = tokens.color;
+/** Build the CSS custom-property declarations for the web app (light or dark). */
+export function cssVariables(c: Record<string, string> = tokens.color): string {
   const lines: string[] = [
     `--gm-color-primary: ${c.primary};`,
     `--gm-color-on-primary: ${c.onPrimary};`,
