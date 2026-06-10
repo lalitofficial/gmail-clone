@@ -1,4 +1,4 @@
-import type { Category, Folder } from '@gmail-clone/shared';
+import type { Category, Folder, Label } from '@gmail-clone/shared';
 
 export interface ApiAccount {
   id: string;
@@ -6,6 +6,8 @@ export interface ApiAccount {
   name: string;
   initial: string;
   avatarColor: string;
+  /** Demo password for this clone's backend (never sent to clients via /api/accounts). */
+  password: string;
 }
 
 export interface ServerAttachment {
@@ -13,6 +15,8 @@ export interface ServerAttachment {
   name: string;
   kind: string;
   size: string;
+  /** Optional base64 data URL for small files (e.g. images) so they can be previewed. */
+  dataUrl?: string;
 }
 
 /** A single message (one per send), shared across sender + recipients. */
@@ -22,6 +26,8 @@ export interface ServerMessage {
   fromEmail: string;
   fromName: string;
   toEmails: string[];
+  cc?: string[];
+  bcc?: string[];
   subject: string;
   body: string;
   date: string;
@@ -38,10 +44,13 @@ export interface MailboxEntry {
   read: boolean;
   starred: boolean;
   important: boolean;
+  /** Labels applied by this account. */
+  labels?: string[];
 }
 
 export interface Database {
   accounts: ApiAccount[];
   messages: ServerMessage[];
   mailbox: MailboxEntry[];
+  labels: Label[];
 }

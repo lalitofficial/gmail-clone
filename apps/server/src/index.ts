@@ -4,12 +4,20 @@ import cors from 'cors';
 import { WebSocketServer, WebSocket } from 'ws';
 import { avatarColorFor, type Category, type Email, type Folder } from '@gmail-clone/shared';
 import {
+  createLabel,
+  deleteDraftMsg,
   deliver,
   entriesFor,
   findAccount,
   getAccounts,
+  getLabels,
   init,
+  saveDraft,
+  setThreadLabel,
+  threadMessagesFor,
+  threadsFor,
   updateEntry,
+  updateThread,
 } from './db.ts';
 import type { MailboxEntry, ServerMessage } from './types.ts';
 
@@ -42,6 +50,7 @@ function toClientEmail(entry: MailboxEntry & { message: ServerMessage }): Email 
     threadId: m.threadId,
     from: contactFor(m.fromEmail, m.fromName),
     to: m.toEmails.map((e) => contactFor(e)),
+    cc: (m.cc ?? []).map((e) => contactFor(e)),
     subject: m.subject,
     snippet: m.body.replace(/\n+/g, ' ').slice(0, 140),
     body: m.body,
@@ -51,10 +60,10 @@ function toClientEmail(entry: MailboxEntry & { message: ServerMessage }): Email 
     important: entry.important,
     hasAttachment: m.attachments.length > 0,
     attachments: m.attachments,
-    labels: [],
+    labels: entry.labels ?? [],
     category: entry.category,
     folder: entry.folder,
-    snoozed: false,
+    snoozed: entry.folder === 'snoozed',
   };
 }
 
@@ -77,8 +86,12 @@ app.get('/api/accounts', (_req, res) => {
 
 app.post('/api/login', (req, res) => {
   const acc = findAccount(String(req.body?.email ?? ''));
-  if (!acc) return res.status(401).json({ error: 'unknown account' });
-  res.json(acc);
+  if (!acc) return res.status(404).json({ error: 'account_not_found' });
+  if (String(req.body?.password ?? '') !== acc.password) {
+    return res.status(401).json({ error: 'wrong_password' });
+  }
+  const { password: _pw, ...safe } = acc;
+  res.json(safe);
 });
 
 app.get('/api/messages', (req, res) => {
@@ -87,14 +100,34 @@ app.get('/api/messages', (req, res) => {
   const folder = req.query.folder as Folder | undefined;
   const category = req.query.category as Category | undefined;
 
+  const label = req.query.label as string | undefined;
   let list = entriesFor(email);
-  if (folder === 'starred') list = list.filter((e) => e.starred && e.folder !== 'trash');
+  if (label) list = list.filter((e) => (e.labels ?? []).includes(label) && e.folder !== 'trash');
+  else if (folder === 'starred') list = list.filter((e) => e.starred && e.folder !== 'trash');
   else if (folder === 'important') list = list.filter((e) => e.important && e.folder !== 'trash');
   else if (folder === 'allMail') list = list.filter((e) => e.folder !== 'spam' && e.folder !== 'trash');
   else if (folder) list = list.filter((e) => e.folder === folder);
   if (folder === 'inbox' && category) list = list.filter((e) => e.category === category);
 
-  res.json(list.map(toClientEmail));
+  // Collapse to one row per conversation (id = threadId).
+  const threads = threadsFor(email, list);
+  res.json(
+    threads.map((t) => ({
+      ...toClientEmail(t),
+      id: t.message.threadId,
+      messageCount: t.messageCount,
+      participants: t.participants,
+    })),
+  );
+});
+
+// All messages in a conversation (oldest → newest), for the thread view.
+app.get('/api/thread/:threadId', (req, res) => {
+  const email = authedEmail(req, res);
+  if (!email) return;
+  const msgs = threadMessagesFor(email, req.params.threadId);
+  if (msgs.length === 0) return res.status(404).json({ error: 'not found' });
+  res.json(msgs.map(toClientEmail));
 });
 
 app.get('/api/unread-counts', (req, res) => {
@@ -119,19 +152,24 @@ app.get('/api/messages/:id', (req, res) => {
   res.json(toClientEmail(entry));
 });
 
+const parseList = (raw: unknown): string[] =>
+  (Array.isArray(raw) ? raw : String(raw ?? '').split(','))
+    .map((s: string) => String(s).trim())
+    .filter(Boolean);
+
 app.post('/api/send', (req, res) => {
   const email = authedEmail(req, res);
   if (!email) return;
-  const rawTo = req.body?.to;
-  const toEmails: string[] = (Array.isArray(rawTo) ? rawTo : String(rawTo ?? '').split(','))
-    .map((s: string) => s.trim())
-    .filter(Boolean);
 
   const { message, recipients } = deliver({
     fromEmail: email,
-    toEmails,
+    toEmails: parseList(req.body?.to),
+    cc: parseList(req.body?.cc),
+    bcc: parseList(req.body?.bcc),
     subject: String(req.body?.subject ?? ''),
     body: String(req.body?.body ?? ''),
+    threadId: req.body?.threadId ? String(req.body.threadId) : undefined,
+    attachments: Array.isArray(req.body?.attachments) ? req.body.attachments : [],
   });
 
   // Live-push to every recipient currently connected.
@@ -142,10 +180,57 @@ app.post('/api/send', (req, res) => {
   res.json({ ok: true, id: message.id, delivered: recipients });
 });
 
+app.get('/api/labels', (req, res) => {
+  if (!authedEmail(req, res)) return;
+  res.json(getLabels());
+});
+
+app.post('/api/labels', (req, res) => {
+  if (!authedEmail(req, res)) return;
+  const name = String(req.body?.name ?? '').trim();
+  if (!name) return res.status(400).json({ error: 'name required' });
+  res.json(createLabel(name));
+});
+
+app.post('/api/messages/:id/label', (req, res) => {
+  const email = authedEmail(req, res);
+  if (!email) return;
+  const ok = setThreadLabel(email, req.params.id, String(req.body?.label ?? ''), !!req.body?.on);
+  if (!ok) return res.status(404).json({ error: 'not found' });
+  res.json({ ok: true });
+});
+
+app.post('/api/draft', (req, res) => {
+  const email = authedEmail(req, res);
+  if (!email) return;
+  const id = saveDraft(email, {
+    id: req.body?.id ? String(req.body.id) : undefined,
+    toEmails: parseList(req.body?.to),
+    cc: parseList(req.body?.cc),
+    bcc: parseList(req.body?.bcc),
+    subject: String(req.body?.subject ?? ''),
+    body: String(req.body?.body ?? ''),
+    attachments: Array.isArray(req.body?.attachments) ? req.body.attachments : [],
+  });
+  res.json({ ok: true, id });
+});
+
+app.delete('/api/draft/:id', (req, res) => {
+  const email = authedEmail(req, res);
+  if (!email) return;
+  deleteDraftMsg(email, req.params.id);
+  res.json({ ok: true });
+});
+
 app.post('/api/messages/:id/action', (req, res) => {
   const email = authedEmail(req, res);
   if (!email) return;
   const action = String(req.body?.action ?? '');
+  const id = req.params.id;
+  // :id is a threadId for conversation rows; fall back to a single message id.
+  const threadEntries = threadMessagesFor(email, id);
+  const isThread = threadEntries.length > 0;
+
   const patch: Partial<MailboxEntry> = {};
   switch (action) {
     case 'read': patch.read = true; break;
@@ -153,18 +238,30 @@ app.post('/api/messages/:id/action', (req, res) => {
     case 'star': patch.starred = true; break;
     case 'unstar': patch.starred = false; break;
     case 'toggle-star': {
-      const cur = entriesFor(email).find((e) => e.messageId === req.params.id);
-      patch.starred = !cur?.starred;
+      const anyStarred = isThread
+        ? threadEntries.some((e) => e.starred)
+        : !!entriesFor(email).find((e) => e.messageId === id)?.starred;
+      patch.starred = !anyStarred;
       break;
     }
     case 'archive': patch.folder = 'archive'; break;
     case 'trash': patch.folder = 'trash'; break;
     case 'inbox': patch.folder = 'inbox'; break;
     case 'spam': patch.folder = 'spam'; break;
-    default: return res.status(400).json({ error: 'bad action' });
+    case 'snooze': patch.folder = 'snoozed'; break;
+    case 'important': patch.important = true; break;
+    case 'not-important': patch.important = false; break;
+    default: {
+      // Generic restore used by client-side Undo: "move:<folder>".
+      const move = /^move:(inbox|starred|snoozed|sent|drafts|spam|trash|archive)$/.exec(action);
+      if (!move) return res.status(400).json({ error: 'bad action' });
+      patch.folder = move[1] as MailboxEntry['folder'];
+      break;
+    }
   }
-  const updated = updateEntry(email, req.params.id, patch);
-  if (!updated) return res.status(404).json({ error: 'not found' });
+
+  const ok = isThread ? updateThread(email, id, patch) : !!updateEntry(email, id, patch);
+  if (!ok) return res.status(404).json({ error: 'not found' });
   res.json({ ok: true });
 });
 
@@ -184,7 +281,7 @@ app.get('/api/search', (req, res) => {
         m.body.toLowerCase().includes(q)
       );
     });
-  res.json(results.map(toClientEmail));
+  res.json(results.map((e) => ({ ...toClientEmail(e), id: e.message.threadId })));
 });
 
 // --- WebSocket (live delivery) ------------------------------------------
