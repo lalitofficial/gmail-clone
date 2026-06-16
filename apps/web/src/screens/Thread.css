@@ -339,11 +339,35 @@
   background: var(--gm-color-hover);
 }
 
+.gm-message-clip {
+  display: inline-flex;
+  align-items: center;
+  color: var(--gm-color-on-surface-variant);
+  margin-right: 4px;
+}
+
 .gm-message-date {
   font-size: 12px;
   color: var(--gm-color-text-secondary);
   margin-right: 8px;
   white-space: nowrap;
+}
+
+/* "Show trimmed content" dots Gmail shows on quoted replies. */
+.gm-message-trim {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 18px;
+  padding: 0 6px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 8px;
+  background: var(--gm-color-surface-container);
+  color: var(--gm-color-on-surface-variant);
+}
+.gm-message-trim:hover {
+  background: var(--gm-color-outline-variant);
 }
 
 .gm-message-text {
@@ -365,16 +389,56 @@
 /* Attachments */
 .gm-thread-attachments {
   margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--gm-color-divider);
 }
 .gm-thread-attachments-head {
-  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  font-size: 16px;
   color: var(--gm-color-on-surface);
-  margin-bottom: 8px;
+}
+.gm-thread-attachments-count {
+  font-weight: 400;
+}
+.gm-thread-attachments-scan {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--gm-color-text-secondary);
+}
+.gm-thread-attachments-scan .gm-dot {
+  margin-right: 2px;
+}
+.gm-thread-attachments-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+}
+.gm-thread-attachments-drive {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 16px 0 12px;
+  border: 1px solid var(--gm-color-outline-variant);
+  border-radius: var(--gm-radius-full);
+  background: transparent;
+  color: var(--gm-color-on-surface);
+  font-size: 14px;
+  font-weight: 500;
+}
+.gm-thread-attachments-drive:hover {
+  background: var(--gm-color-hover);
 }
 .gm-thread-attachments-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
 }
 
 /* Smart-reply chips */

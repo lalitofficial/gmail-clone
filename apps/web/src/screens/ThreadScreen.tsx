@@ -145,7 +145,8 @@ export function ThreadScreen({ route }: { route: Extract<Route, { view: 'thread'
               key={m.id}
               email={m}
               me={account.email}
-              defaultExpanded={i === messages.length - 1}
+              defaultExpanded={i === messages.length - 1 || m.attachments.length > 0 || !m.read}
+              quoted={i > 0}
               onReply={() => openCompose({ to: m.from.email.toLowerCase() === account.email.toLowerCase() ? m.to[0]?.email ?? '' : m.from.email, subject: `${replyPrefix}${subject}`, threadId })}
               onToggleStar={() => toggleStar(threadId)}
               onPrint={() => printEmails(subject, [m], printAccount)}
@@ -196,6 +197,7 @@ function ThreadMessage({
   email,
   me,
   defaultExpanded,
+  quoted,
   onReply,
   onToggleStar,
   onPrint,
@@ -203,6 +205,7 @@ function ThreadMessage({
   email: Email;
   me: string;
   defaultExpanded: boolean;
+  quoted: boolean;
   onReply: () => void;
   onToggleStar: () => void;
   onPrint: () => void;
@@ -210,7 +213,10 @@ function ThreadMessage({
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [menuOpen, setMenuOpen] = useState(false);
   const fromMe = email.from.email.toLowerCase() === me.toLowerCase();
-  const toLabel = fromMe ? `to ${email.to.map((c) => c.name || c.email).join(', ')}` : 'to me';
+  const firstName = (c: { name: string; email: string }) => (c.name || c.email).split(' ')[0];
+  const toLabel = email.to.some((c) => c.email.toLowerCase() === me.toLowerCase())
+    ? 'to me'
+    : `to ${email.to.map(firstName).join(', ')}`;
 
   if (!expanded) {
     return (
@@ -231,15 +237,19 @@ function ThreadMessage({
       <div className="gm-message-content">
         <div className="gm-message-head">
           <div className="gm-message-meta">
-            <span className="gm-message-sender">{fromMe ? 'me' : email.from.name}</span>
+            <span className="gm-message-sender">{email.from.name}</span>
             <span className="gm-message-email">&lt;{email.from.email}&gt;</span>
             <div className="gm-message-to">{toLabel}<Icon name="arrow_drop_down" size={18} /></div>
           </div>
           <div className="gm-message-actions">
+            {email.attachments.length > 0 && (
+              <span className="gm-message-clip" aria-label="Has attachment"><Icon name="attachment" size={18} /></span>
+            )}
             <span className="gm-message-date">{formatThreadDateRelative(email.date)}</span>
             <button className="gm-icon-btn" onClick={onToggleStar} aria-label="Star">
               <Icon name="star" size={20} fill={email.starred} color={email.starred ? 'var(--gm-color-star)' : undefined} />
             </button>
+            <button className="gm-icon-btn" aria-label="Add reaction"><Icon name="add_reaction" size={20} /></button>
             <button className="gm-icon-btn" aria-label="Reply" onClick={onReply}><Icon name="reply" size={20} /></button>
             <div className="gm-message-menu-wrap">
               <button className="gm-icon-btn" aria-label="More" aria-expanded={menuOpen} onClick={() => setMenuOpen((open) => !open)}><Icon name="more_vert" size={20} /></button>
@@ -259,10 +269,29 @@ function ThreadMessage({
           ))}
         </div>
 
+        {quoted && (
+          <button className="gm-message-trim" aria-label="Show trimmed content" title="Show trimmed content">
+            <Icon name="more_horiz" size={18} />
+          </button>
+        )}
+
         {email.attachments.length > 0 && (
           <div className="gm-thread-attachments">
             <div className="gm-thread-attachments-head">
-              {email.attachments.length} Attachment{email.attachments.length > 1 ? 's' : ''}
+              <span className="gm-thread-attachments-count">
+                {email.attachments.length} Attachment{email.attachments.length > 1 ? 's' : ''}
+              </span>
+              <span className="gm-thread-attachments-scan">
+                <span className="gm-dot">·</span> Scanned by Gmail
+                <Icon name="info" size={15} />
+              </span>
+              <span className="gm-thread-attachments-actions">
+                <button className="gm-icon-btn" aria-label="Download all" title="Download all"><Icon name="download" size={20} /></button>
+                <button className="gm-thread-attachments-drive" aria-label="Add all to Drive">
+                  <Icon name="add_to_drive" size={20} />
+                  Add all to Drive
+                </button>
+              </span>
             </div>
             <div className="gm-thread-attachments-list">
               {email.attachments.map((a) => <AttachmentCard key={a.id} attachment={a} />)}

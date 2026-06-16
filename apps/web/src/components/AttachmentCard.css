@@ -1,34 +1,77 @@
+/* Gmail open-thread attachment tile: preview area + footer bar. */
 .gm-attachment-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 248px;
-  height: 56px;
-  padding: 0 12px;
+  position: relative;
+  width: 200px;
   border: 1px solid var(--gm-color-outline-variant);
   border-radius: var(--gm-radius-sm);
   background: var(--gm-color-surface);
+  overflow: hidden;
   cursor: pointer;
+  transition: box-shadow 120ms ease;
 }
 .gm-attachment-card:hover {
-  background: var(--gm-color-surface-container-low);
+  box-shadow: var(--gm-elevation-1);
 }
 
 .gm-attachment-preview {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  height: 116px;
+  background: var(--gm-color-surface-container-low);
+  border-bottom: 1px solid var(--gm-color-outline-variant);
+}
+.gm-attachment-preview--image {
+  background: linear-gradient(135deg, #eef3fb 0%, #f6f8fc 100%);
+}
+
+/* Download / Drive actions revealed on hover, like Gmail. */
+.gm-attachment-hover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  opacity: 0;
+  background: rgba(32, 33, 36, 0.45);
+  transition: opacity 120ms ease;
+}
+.gm-attachment-card:hover .gm-attachment-hover {
+  opacity: 1;
+}
+.gm-attachment-hbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+}
+.gm-attachment-hbtn:hover {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.gm-attachment-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 10px;
 }
 
 .gm-attachment-info {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  line-height: 1.2;
 }
 
 .gm-attachment-name {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--gm-color-on-surface);
   white-space: nowrap;
@@ -37,6 +80,6 @@
 }
 
 .gm-attachment-size {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--gm-color-text-secondary);
 }
