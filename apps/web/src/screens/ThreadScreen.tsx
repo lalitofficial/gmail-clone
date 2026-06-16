@@ -16,6 +16,8 @@ export function ThreadScreen({ route }: { route: Extract<Route, { view: 'thread'
   const { toggleStar, toggleRead, archive, trash, spam, openCompose, labels, setLabel } = useMailbox();
   const [messages, setMessages] = useState<Email[] | null>(null);
   const [openMenu, setOpenMenu] = useState<'move' | 'more' | 'label' | null>(null);
+  const [showTrimmed, setShowTrimmed] = useState(false);
+  const printAccount = { name: account.name, email: account.email };
 
   const toggleThreadLabel = (name: string, on: boolean) => {
     setLabel(route.id, name, on);
@@ -109,7 +111,7 @@ export function ThreadScreen({ route }: { route: Extract<Route, { view: 'thread'
           {openMenu === 'more' && (
             <div className="gm-thread-menu">
               <button onClick={() => { toggleRead(threadId); back(); }}>Mark as unread</button>
-              <button onClick={() => printEmails(subject, messages)}>Print all</button>
+              <button onClick={() => printEmails(subject, messages, printAccount)}>Print all</button>
               <button onClick={() => navigator.clipboard?.writeText(location.href)}>Copy link</button>
             </div>
           )}
@@ -132,22 +134,46 @@ export function ThreadScreen({ route }: { route: Extract<Route, { view: 'thread'
             <button className="gm-icon-btn" aria-label="Star" onClick={() => toggleStar(threadId)}>
               <Icon name="star" size={20} fill={anyStarred} color={anyStarred ? 'var(--gm-color-star)' : undefined} />
             </button>
-            <button className="gm-icon-btn" aria-label="Print all" title="Print all" onClick={() => printEmails(subject, messages)}><Icon name="print" size={20} /></button>
+            <button className="gm-icon-btn" aria-label="Print all" title="Print all" onClick={() => printEmails(subject, messages, printAccount)}><Icon name="print" size={20} /></button>
             <button className="gm-icon-btn" aria-label="In new window" title="In new window" onClick={() => window.open(location.href, '_blank', 'noopener,noreferrer')}><Icon name="open_in_new" size={20} /></button>
           </div>
         </div>
 
-        {messages.map((m, i) => (
-          <ThreadMessage
-            key={m.id}
-            email={m}
-            me={account.email}
-            defaultExpanded={i === messages.length - 1}
-            onReply={() => openCompose({ to: m.from.email.toLowerCase() === account.email.toLowerCase() ? m.to[0]?.email ?? '' : m.from.email, subject: `${replyPrefix}${subject}`, threadId })}
-            onToggleStar={() => toggleStar(threadId)}
-            onPrint={() => printEmails(subject, [m])}
-          />
-        ))}
+        {(() => {
+          const renderMessage = (m: Email, i: number) => (
+            <ThreadMessage
+              key={m.id}
+              email={m}
+              me={account.email}
+              defaultExpanded={i === messages.length - 1}
+              onReply={() => openCompose({ to: m.from.email.toLowerCase() === account.email.toLowerCase() ? m.to[0]?.email ?? '' : m.from.email, subject: `${replyPrefix}${subject}`, threadId })}
+              onToggleStar={() => toggleStar(threadId)}
+              onPrint={() => printEmails(subject, [m], printAccount)}
+            />
+          );
+
+          // Gmail trims long threads: first message, a "N hidden" band, then the last two.
+          const TRIM_FROM = 5;
+          const hidden = messages.length - 3;
+          if (messages.length < TRIM_FROM || showTrimmed) {
+            return messages.map((m, i) => renderMessage(m, i));
+          }
+          return (
+            <>
+              {renderMessage(messages[0], 0)}
+              <button
+                className="gm-thread-trim"
+                onClick={() => setShowTrimmed(true)}
+                title={`Show ${hidden} more message${hidden === 1 ? '' : 's'}`}
+              >
+                <span className="gm-thread-trim-badge">{hidden}</span>
+                <span className="gm-thread-trim-line" />
+              </button>
+              {renderMessage(messages[messages.length - 2], messages.length - 2)}
+              {renderMessage(messages[messages.length - 1], messages.length - 1)}
+            </>
+          );
+        })()}
 
         <div className="gm-smart-replies">
           {smartReplies.map((r) => (
@@ -189,9 +215,11 @@ function ThreadMessage({
   if (!expanded) {
     return (
       <button className="gm-msg-collapsed" onClick={() => setExpanded(true)}>
-        <Avatar initial={email.from.initial} color={email.from.avatarColor} size={32} />
-        <span className="gm-msg-collapsed-sender">{fromMe ? 'me' : email.from.name}</span>
-        <span className="gm-msg-collapsed-snippet">{email.snippet}</span>
+        <Avatar initial={email.from.initial} color={email.from.avatarColor} size={36} />
+        <div className="gm-msg-collapsed-text">
+          <span className="gm-msg-collapsed-sender">{fromMe ? 'me' : email.from.name}</span>
+          <span className="gm-msg-collapsed-snippet">{email.snippet}</span>
+        </div>
         <span className="gm-msg-collapsed-date">{formatListDate(email.date)}</span>
       </button>
     );

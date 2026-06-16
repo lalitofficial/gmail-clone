@@ -1,5 +1,10 @@
 import type { Contact, Email } from '@gmail-clone/shared';
 
+export interface PrintAccount {
+  name: string;
+  email: string;
+}
+
 const escapeHtml = (value: string) =>
   value.replace(/[&<>"']/g, (character) => {
     const entities: Record<string, string> = {
@@ -17,15 +22,31 @@ const contacts = (items: Contact[] | undefined) =>
     .map((contact) => `${escapeHtml(contact.name)} &lt;${escapeHtml(contact.email)}&gt;`)
     .join(', ');
 
-const fullDate = (iso: string) =>
-  new Date(iso).toLocaleString('en-US', {
+/** Gmail print date: "Mon, Jun 8, 2026 at 1:50 AM". */
+const fullDate = (iso: string) => {
+  const date = new Date(iso);
+  const day = date.toLocaleString('en-US', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
   });
+  const time = date.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit' });
+  return `${day} at ${time}`;
+};
+
+/** The multicolor Gmail "M" mark, inlined so the print window needs no assets. */
+const gmailLogo = `
+  <span class="brand">
+    <svg viewBox="0 0 256 193" width="40" height="30" aria-hidden="true">
+      <path d="M58.182 192.05V93.14L27.507 65.077 0 49.504v125.091c0 9.658 7.825 17.455 17.455 17.455z" fill="#4285F4"/>
+      <path d="M197.818 192.05h40.727c9.659 0 17.455-7.826 17.455-17.455V49.505l-31.156 17.837-27.026 25.798z" fill="#34A853"/>
+      <path d="M58.182 93.14l-4.174-38.647 4.174-36.989L128 69.868l69.818-52.364 4.669 34.992-4.669 40.644L128 145.504z" fill="#EA4335"/>
+      <path d="M197.818 17.504V93.14L256 49.504V26.231c0-21.585-24.64-33.89-41.89-20.945z" fill="#FBBC04"/>
+      <path d="M0 49.504l26.759 20.07L58.182 93.14V17.504L41.89 5.286C24.61-7.66 0 4.646 0 26.231z" fill="#C5221F"/>
+    </svg>
+    <span class="brand-word">Gmail</span>
+  </span>`;
 
 function messageMarkup(email: Email) {
   const cc = contacts(email.cc);
@@ -64,13 +85,14 @@ function messageMarkup(email: Email) {
     </article>`;
 }
 
-function printDocument(subject: string, messages: Email[]) {
+function printDocument(subject: string, messages: Email[], account: PrintAccount) {
+  const count = `${messages.length} message${messages.length === 1 ? '' : 's'}`;
   return `<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>${escapeHtml(subject)}</title>
+    <title>${escapeHtml(subject || 'Gmail')}</title>
     <style>
       @page { size: auto; margin: 16mm 18mm; }
       * { box-sizing: border-box; }
@@ -83,43 +105,53 @@ function printDocument(subject: string, messages: Email[]) {
         font-size: 13px;
         line-height: 1.45;
       }
-      .print-header {
+      /* Brand row: Gmail logo (left) + account identity (right). */
+      .account-row {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
         gap: 24px;
-        margin-bottom: 24px;
         padding-bottom: 12px;
-        border-bottom: 1px solid #dadce0;
+        border-bottom: 1px solid #cccccc;
       }
-      .subject {
-        margin: 0;
-        font-size: 20px;
-        font-weight: 400;
-        line-height: 1.3;
-      }
-      .print-button {
+      .brand {
         display: inline-flex;
         align-items: center;
-        justify-content: center;
-        width: 34px;
-        height: 34px;
-        padding: 0;
-        border: 1px solid #dadce0;
-        border-radius: 4px;
-        background: #fff;
-        color: #3c4043;
-        cursor: pointer;
+        gap: 8px;
       }
-      .print-button:hover { background: #f1f3f4; }
-      .print-button svg { width: 18px; height: 18px; fill: currentColor; }
+      .brand-word {
+        font-size: 22px;
+        color: #5f6368;
+        letter-spacing: -0.5px;
+      }
+      .account-id {
+        font-size: 13px;
+        font-weight: bold;
+        color: #202124;
+        text-align: right;
+        overflow-wrap: anywhere;
+      }
+      .subject {
+        margin: 24px 0 2px;
+        font-size: 22px;
+        font-weight: bold;
+        line-height: 1.3;
+        color: #202124;
+      }
+      .message-count {
+        margin: 0 0 18px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #cccccc;
+        color: #5f6368;
+        font-size: 13px;
+      }
       .message {
         break-inside: auto;
         padding: 0 0 24px;
       }
       .message + .message {
         padding-top: 24px;
-        border-top: 1px solid #dadce0;
+        border-top: 1px solid #e0e0e0;
       }
       .message-header {
         display: grid;
@@ -135,7 +167,7 @@ function printDocument(subject: string, messages: Email[]) {
         font-size: 13px;
       }
       .sender strong { margin-right: 5px; }
-      .sender span { color: #5f6368; }
+      .sender span { color: #5f6368; font-weight: normal; }
       time {
         grid-column: 2;
         grid-row: 1;
@@ -180,25 +212,18 @@ function printDocument(subject: string, messages: Email[]) {
         transform: rotate(35deg);
       }
       .attachment-size { color: #5f6368; }
-      @media print {
-        body { max-width: none; }
-        .print-button { display: none; }
-        .print-header { margin-bottom: 20px; }
-      }
       @media screen {
         body { padding: 32px; }
       }
     </style>
   </head>
   <body>
-    <header class="print-header">
-      <h1 class="subject">${escapeHtml(subject)}</h1>
-      <button class="print-button" onclick="window.print()" aria-label="Print" title="Print">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M19 8H5a3 3 0 0 0-3 3v4h4v4h12v-4h4v-4a3 3 0 0 0-3-3Zm-3 9H8v-5h8v5Zm3-5a1 1 0 1 1 0-2 1 1 0 0 1 0 2ZM18 3H6v4h12V3Z"/>
-        </svg>
-      </button>
+    <header class="account-row">
+      ${gmailLogo}
+      <span class="account-id">${escapeHtml(account.name)} &lt;${escapeHtml(account.email)}&gt;</span>
     </header>
+    <h1 class="subject">${escapeHtml(subject)}</h1>
+    <div class="message-count">${count}</div>
     <main>${messages.map(messageMarkup).join('')}</main>
     <script>
       window.addEventListener('load', () => {
@@ -209,13 +234,13 @@ function printDocument(subject: string, messages: Email[]) {
 </html>`;
 }
 
-export function printEmails(subject: string, messages: Email[]) {
+export function printEmails(subject: string, messages: Email[], account: PrintAccount) {
   const popup = window.open('', '_blank', 'width=900,height=720');
   if (!popup) return false;
 
   popup.opener = null;
   popup.document.open();
-  popup.document.write(printDocument(subject, messages));
+  popup.document.write(printDocument(subject, messages, account));
   popup.document.close();
   return true;
 }
