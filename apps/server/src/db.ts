@@ -32,6 +32,7 @@ const ACCOUNT_SEED: { email: string; name: string; password: string }[] = [
   { email: 'aiforkidsofficial@gmail.com', name: 'Aiforkids', password: 'Aiforkids@123' },
   { email: 'ccw@smail.iitm.ac.in', name: 'CCW', password: 'Ccw@12345' },
   { email: 'gsmandakb@smail.iitm.ac.in', name: 'GS Mandak', password: 'Gsmandak@123' },
+  { email: 'nandini.tyagi@pw.live', name: 'Nandini Tyagi', password: 'Nandini@123' },
 ];
 
 function makeAccount(email: string, name: string, password: string): ApiAccount {
@@ -45,16 +46,11 @@ function makeAccount(email: string, name: string, password: string): ApiAccount 
   };
 }
 
-function seed(): Database {
-  const accounts = ACCOUNT_SEED.map((a) => makeAccount(a.email, a.name, a.password));
-  const messages: ServerMessage[] = [];
-  const mailbox: MailboxEntry[] = [];
-
-  // A welcome message in each account's inbox so it isn't empty on first login.
-  const now = Date.now();
-  accounts.forEach((acc, i) => {
-    const id = genId();
-    messages.push({
+/** A welcome message + inbox entry so a freshly-seeded account isn't empty. */
+function welcomeFor(acc: ApiAccount, date: string): { message: ServerMessage; entry: MailboxEntry } {
+  const id = genId();
+  return {
+    message: {
       id,
       threadId: id,
       fromEmail: 'team@gmail-clone.local',
@@ -62,10 +58,10 @@ function seed(): Database {
       toEmails: [acc.email],
       subject: 'Welcome to your inbox',
       body: `Hi ${acc.name},\n\nThis inbox is live on your local network. Compose a message to any of the other accounts and it will be delivered in real time.\n\n— The Gmail Clone team`,
-      date: new Date(now - (i + 1) * 3600_000).toISOString(),
+      date,
       attachments: [],
-    });
-    mailbox.push({
+    },
+    entry: {
       id: `mb-${id}-${acc.email}`,
       email: acc.email,
       messageId: id,
@@ -74,11 +70,41 @@ function seed(): Database {
       read: false,
       starred: false,
       important: false,
-      labels: i === 0 ? ['Personal'] : [], // one labeled message so a label view isn't empty
-    });
+      labels: [],
+    },
+  };
+}
+
+function seed(): Database {
+  const accounts = ACCOUNT_SEED.map((a) => makeAccount(a.email, a.name, a.password));
+  const messages: ServerMessage[] = [];
+  const mailbox: MailboxEntry[] = [];
+
+  const now = Date.now();
+  accounts.forEach((acc, i) => {
+    const { message, entry } = welcomeFor(acc, new Date(now - (i + 1) * 3600_000).toISOString());
+    if (i === 0) entry.labels = ['Personal']; // one labeled message so a label view isn't empty
+    messages.push(message);
+    mailbox.push(entry);
   });
 
   return { accounts, messages, mailbox, labels: SEED_LABELS };
+}
+
+/** Add any seed accounts missing from a persisted store (e.g. accounts added after first run). */
+function reconcileAccounts(database: Database): boolean {
+  const now = Date.now();
+  let changed = false;
+  for (const a of ACCOUNT_SEED) {
+    if (database.accounts.some((acc) => acc.email === a.email)) continue;
+    const acc = makeAccount(a.email, a.name, a.password);
+    const { message, entry } = welcomeFor(acc, new Date(now).toISOString());
+    database.accounts.push(acc);
+    database.messages.push(message);
+    database.mailbox.push(entry);
+    changed = true;
+  }
+  return changed;
 }
 
 let db: Database;
@@ -88,6 +114,7 @@ function load(): Database {
     try {
       const parsed = JSON.parse(fs.readFileSync(DB_FILE, 'utf8')) as Database;
       if (!parsed.labels) parsed.labels = SEED_LABELS; // backfill older stores
+      if (reconcileAccounts(parsed)) save(parsed); // add any newly-seeded accounts
       return parsed;
     } catch {
       // fall through to reseed on a corrupt file
